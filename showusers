@@ -1,0 +1,83 @@
+#!/bin/bash
+
+#********************************************************
+#Author    : Adriano ALves aalves3
+#Date      : Sep/22/2015
+#File Name : showusers
+#Objective : HW1 CS155B
+#            This script will show mysql users
+#             with options: 
+#                -n to display numbers of users available  
+#                -h for help 
+#                -n regexp user with regular expression
+#********************************************************
+
+mysqlpswd="change_me"
+
+#****** help() ******
+help()
+{
+   echo "This Program Show all mysql users available"
+   echo "options:[-h for help]" 
+   echo "        [-n show numbers of users available]"
+   echo "        [-n regexp show number of users "
+   echo "            with the regular expression provide]"
+}
+#***** domysql() *****#
+domysql()
+{
+   mysql -BcNns --disable-pager -u root -p$mysqlpswd <<-EOF
+   $@;
+EOF
+}
+
+      #**** command validate ****
+
+#*** NO argument ****
+if (($# == 0));then
+
+   domysql "select User from mysql.user;"
+
+#*** 1 argument ****
+elif (($# == 1));then
+
+   #**** option -h ****
+   if [[ $1 == "-h" || $1 == "-H" ]];then
+
+      help
+
+   #**** option -n ****
+   elif [[ $1 == "-n" || $1 == "-N" ]];then  
+
+      echo -n "Total of users Availabel: "
+      domysql "select count(*) from mysql.user;"
+
+   #**** regexp ****
+   else
+
+      domysql "select User from mysql.user where User REGEXP '$1';"
+
+   fi
+    
+#*** 2 arguments ****
+elif (($# == 2));then
+
+   if [[ $1 == "-n" || $1 == "-N" ]];then
+
+      echo -n "Total of users Availabel: "
+      domysql "select count(*) from mysql.user where User REGEXP '$2';"
+
+   else
+
+   echo "INVALID COMMAND"
+  
+   fi
+#***** ERROR *****
+else
+
+   echo "INVALID COMMAND"
+
+fi
+
+exit 0
+
