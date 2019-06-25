@@ -13,8 +13,8 @@
 # to change dafault password just change in the following
 # line
 #**********  passwords *********#
-userpswd="changeme"
-mysqlpswd="greenLight"
+userpswd="change_me"
+mysqlpswd="change_me"
 #*********************** help() *************************
 myhelp()
 {
