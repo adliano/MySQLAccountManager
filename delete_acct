@@ -1,0 +1,121 @@
+#!/bin/bash
+#********************************************************
+#Author    : Adriano ALves aalves3
+#Date      : Oct/01/2015
+#File Name : delete_acct
+#Objective : HW2 CS155B
+#            This script will delete accounts for mySQL
+#             with options:
+#                -l to read user names from a file
+#                -h for help
+#
+#********************************************************
+#**********  password *********#
+mysqlpswd="greenLight"
+#************************ help() **********************
+myhelp()
+{
+   echo $'\nThis Program delete accounts for mySQL\n'
+   echo $'create_acct <user_id1> <user_id2> ...'
+   echo $'options:-f <file_name> [to read users name from a file]\n'
+   echo $'        -h [for help]'
+}
+#************************ errormsg() ******************
+errormsg()
+{
+   echo -e -n "\r\033[31m"
+   echo -n "usage:"
+   echo "usage:delete_acct user_id1 user_id2 ..."
+   echo "options:"
+   echo " -f <file_name> <user_id1> <user_id2> ..."
+   echo " -h [for help]"
+   echo -e -n "\033[0m"
+}
+#************************ domysql() *******************
+domysql()
+{
+   mysql -BcNns --disable-pager -u root -p$mysqlpswd <<-EOF
+   $@;
+EOF
+}
+#************************ RUroot() ********************
+RUroot()
+{
+   x=$(id | grep '(root)')
+
+   if [ -z "$x" ];then
+       echo "false"
+   else
+       echo "true"
+   fi
+}
+#********************** readFile() ***********************
+RMReadFile()
+{
+   #check if is a valid fale name
+   if [ -f "$1" ];then #######
+      while read line;do
+          #check if user exist
+          x=$(./showusers | grep "$line")
+
+          if [ ! -z "$x" ];then
+              domysql "drop user '$line'@'localhost';"
+              echo "user removed :"$line
+          else
+              echo "user NOT available :"$line
+          fi
+      done < "$1" 
+   else 
+      echo -e "\033[41m invalid file name :\033[0m"$1
+   fi
+}
+#********************** readFile() ***********************
+RMAcct()
+{
+   for userid in "$@"; do
+       #check if user exist
+       x=$(./showusers | grep "$userid")
+
+       if [ ! -z "$x" ];then
+           domysql "drop user '$userid'@'localhost';"
+           echo "user removed :"$userid
+       else
+           echo "user NOT available :"$userid
+       fi
+   done
+}
+#************************ checking user ***************
+if [ $(RUroot) = 'false' ];then
+    echo -e -n "\r\033[41m"
+    echo -e "PERMISSION DENIED!\033[0m"
+    echo    "root access only"
+    exit 1
+else
+#   clear
+ #*********************** NO argument *****************
+ if (($# == 0));then
+    errormsg
+ else
+    #********************** option -h ******************
+    if [[ $1 = "-h" || $1 = "-H" ]];then
+        if (($# == 1));then
+            myhelp
+        else 
+            errormsg
+        fi
+    #********************** option -f ******************
+    elif [[ "$1" = "-f" || "$1" = "-F" ]];then
+            #read from file
+            RMReadFile $2
+            # getting args after file name
+            RMAcct ${@:3}
+    #********************* no argument *****************
+    elif [[ $1 != *"-"*  ]];then
+        RMAcct $@
+    else 
+        errormsg
+    fi
+  fi
+fi
+#*** END ***#
+
